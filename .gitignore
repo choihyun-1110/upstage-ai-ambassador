@@ -1,0 +1,13 @@
+# 개인 정보
+n8n_workflow/user_profile.json
+
+# 구버전 워크플로우
+n8n_workflow/tech_news_bot.json
+n8n_workflow/profile_register.json
+n8n_workflow/daily_action_report.json
+
+# 기타
+Todo.md
+.DS_Store
+*.log
+.env

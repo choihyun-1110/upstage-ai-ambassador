@@ -1,0 +1,290 @@
+{
+  "name": "AI 커리어 어드바이저",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "맞춤 커리어 액션 추천 서비스",
+        "formDescription": "이력서, 자기소개서, 포트폴리오 등 본인의 경험이 담긴 PDF를 업로드하세요. AI가 분석 후 맞춤 액션 리포트를 이메일로 보내드립니다.",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "이름", "fieldType": "text", "requiredField": true },
+            { "fieldLabel": "이메일", "fieldType": "email", "requiredField": true },
+            { "fieldLabel": "pdf", "fieldType": "file", "requiredField": true, "acceptFileTypes": ".pdf" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-form",
+      "name": "프로필 폼",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [240, 400],
+      "webhookId": "career-advisor-form"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upstage.ai/v1/document-ai/document-parse",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [{ "parameterType": "formBinaryData", "name": "document", "inputDataFieldName": "pdf" }]
+        },
+        "options": {}
+      },
+      "id": "node-docparse",
+      "name": "Document Parse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 400],
+      "credentials": { "httpHeaderAuth": { "id": "upstage-api-key", "name": "Upstage API Key" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nlet fullText = '';\nif (result.content && result.content.html) {\n  fullText = result.content.html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n} else if (result.content && result.content.text) {\n  fullText = result.content.text;\n} else if (result.pages) {\n  fullText = result.pages.map(p => p.text || '').join('\\n');\n}\nconst name = $('프로필 폼').item.json['이름'] || 'User';\nconst email = $('프로필 폼').item.json['이메일'] || '';\nreturn [{ json: { parsedText: fullText.substring(0, 4000), name, email } }];"
+      },
+      "id": "node-extract",
+      "name": "텍스트 추출",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { parsedText, name, email } = $json;\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: `당신은 커리어 분석 전문가입니다. 아래 문서를 분석하고 반드시 JSON 형식으로만 응답하세요:\\n{\\n  \"major\": \"전공 또는 전문 분야\",\\n  \"career_goal\": \"희망 진로\",\\n  \"keywords_en\": [\"영어키워드1\",\"영어키워드2\",\"영어키워드3\"],\\n  \"keywords_kr\": [\"한국어1\",\"한국어2\",\"한국어3\"],\\n  \"company\": \"관심 기업명 (없으면 빈 문자열)\",\\n  \"summary\": \"이 사람을 한 줄로 요약\",\\n  \"career_analysis\": \"이 사람이 지금까지 해온 것들과 강점, 방향성을 3-4문장으로 따뜻하게 분석. 반드시 '당신은'으로 시작\",\\n  \"strengths\": [\"강점1\",\"강점2\",\"강점3\"],\\n  \"growth_areas\": [\"성장 포인트1\",\"성장 포인트2\"],\\n  \"department\": \"단과대/학부 분야 (예: 전기전자, 컴퓨터, 경영, 의학, 기계 등 영문으로)\"\\n}`\n    },\n    { role: 'user', content: `이 문서를 분석해줘:\\n\\n${parsedText}` }\n  ],\n  max_tokens: 1000\n});\nreturn [{ json: { body, name, email } }];"
+      },
+      "id": "node-prep-llm",
+      "name": "커리어 분석 프롬프트",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upstage.ai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "options": {}
+      },
+      "id": "node-solar-analysis",
+      "name": "Solar 커리어 분석",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400],
+      "credentials": { "httpHeaderAuth": { "id": "upstage-api-key", "name": "Upstage API Key" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.choices[0].message.content;\nconst name = $('커리어 분석 프롬프트').item.json.name;\nconst email = $('커리어 분석 프롬프트').item.json.email;\nlet p;\ntry {\n  p = JSON.parse(raw.replace(/```json\\n?/g,'').replace(/```\\n?/g,'').trim());\n} catch(e) {\n  p = { major:'미분류', career_goal:'미설정', keywords_en:['AI','technology'], keywords_kr:['AI','기술'], company:'', summary:'분석 오류', career_analysis:'분석 중 오류가 발생했습니다.', strengths:[], growth_areas:[], department:'engineering' };\n}\nconst profile = {\n  name, email,\n  major: p.major,\n  career_goal: p.career_goal,\n  keywords_en: p.keywords_en || [],\n  keywords_kr: p.keywords_kr || [],\n  company: p.company || '',\n  summary: p.summary,\n  career_analysis: p.career_analysis,\n  strengths: p.strengths || [],\n  growth_areas: p.growth_areas || [],\n  department: p.department || 'engineering',\n  updatedAt: new Date().toISOString()\n};\nconst base64 = Buffer.from(JSON.stringify(profile, null, 2)).toString('base64');\nreturn [{ json: profile, binary: { data: { data: base64, mimeType: 'application/json', fileName: 'user_profile.json' } } }];"
+      },
+      "id": "node-parse-result",
+      "name": "프로필 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/Users/hyun/Upstage_AI_Ambassador/n8n_workflow/user_profile.json",
+        "dataPropertyName": "data"
+      },
+      "id": "node-save",
+      "name": "프로필 저장",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1560, 620]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Upstage Embeddings 준비\nconst profile = $json;\nconst parsedText = $('텍스트 추출').item.json.parsedText || '';\nconst embeddingInput = `이름: ${profile.name}\\n전공: ${profile.major}\\n희망진로: ${profile.career_goal}\\n관심분야: ${[...profile.keywords_en, ...profile.keywords_kr].join(', ')}\\n강점: ${profile.strengths.join(', ')}\\n\\n${parsedText}`.substring(0, 2000);\nconst body = JSON.stringify({ model: 'embedding-passage', input: embeddingInput });\nreturn [{ json: { body, profile } }];"
+      },
+      "id": "node-embed-prep",
+      "name": "임베딩 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upstage.ai/v1/solar/embeddings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "options": {}
+      },
+      "id": "node-upstage-embed",
+      "name": "Upstage 임베딩",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 200],
+      "credentials": { "httpHeaderAuth": { "id": "upstage-api-key", "name": "Upstage API Key" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const embedding = $json.data[0].embedding;\nconst profile = $('임베딩 준비').item.json.profile;\nreturn [{ json: { body: JSON.stringify({\n  name: profile.name,\n  email: profile.email,\n  summary: profile.summary,\n  major: profile.major,\n  career_goal: profile.career_goal,\n  keywords: [...(profile.keywords_en||[]), ...(profile.keywords_kr||[])],\n  embedding\n}) } }];"
+      },
+      "id": "node-supabase-prep",
+      "name": "Supabase 요청 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pgtslyahrtemsimnzdpc.supabase.co/rest/v1/user_profiles",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "sb_publishable_2U-vxMOsTU0bb4YN9SXxqQ_kulIxfMG" },
+            { "name": "Authorization", "value": "Bearer sb_publishable_2U-vxMOsTU0bb4YN9SXxqQ_kulIxfMG" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "options": {}
+      },
+      "id": "node-supabase",
+      "name": "Supabase 저장",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const profile = $json;\nconst kwEn = (profile.keywords_en || []).slice(0,3).join(' OR ');\nconst kwKr = (profile.keywords_kr || []).slice(0,3).join(' ');\nconst company = profile.company || '';\nconst dept = profile.department || 'engineering';\n\nconst deptMap = {\n  'electrical': '전기전자공학부', 'electronic': '전기전자공학부',\n  'computer': '컴퓨터공학부', 'software': '소프트웨어학부',\n  'mechanical': '기계공학부', 'chemical': '화학공학부',\n  'business': '경영학부', 'medicine': '의과대학',\n  'physics': '물리학부', 'math': '수학과', 'engineering': '공과대학'\n};\nconst deptName = Object.entries(deptMap).find(([k]) => dept.toLowerCase().includes(k))?.[1] || '공과대학';\n\nconst feeds = [\n  { type: '링커리어', url: `https://news.google.com/rss/search?q=${encodeURIComponent('site:linkareer.com ' + kwKr)}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: '대외활동/공모전', url: `https://news.google.com/rss/search?q=${encodeURIComponent(kwKr + ' 공모전 대외활동 모집')}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: '인턴십/채용', url: `https://news.google.com/rss/search?q=${encodeURIComponent(kwKr + ' 인턴 채용 모집')}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: '업계뉴스(한)', url: `https://news.google.com/rss/search?q=${encodeURIComponent(kwKr)}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: '업계뉴스(영)', url: `https://news.google.com/rss/search?q=${encodeURIComponent(kwEn)}&hl=en&gl=US&ceid=US:en` },\n  { type: '기업뉴스', url: company ? `https://news.google.com/rss/search?q=${encodeURIComponent(company)}&hl=ko&gl=KR&ceid=KR:ko` : `https://news.google.com/rss/search?q=${encodeURIComponent(kwKr + ' 기업 뉴스')}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: '대학공지/세미나', url: `https://news.google.com/rss/search?q=${encodeURIComponent(deptName + ' 세미나 특강 공지 모집')}&hl=ko&gl=KR&ceid=KR:ko` },\n  { type: 'HackerNews', url: 'https://hnrss.org/frontpage?count=10' }\n];\n\nreturn feeds.map(f => ({ json: { url: f.url, type: f.type, profile, deptName } }));"
+      },
+      "id": "node-collect",
+      "name": "데이터 수집",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": { "response": { "responseFormat": "text" } }
+        }
+      },
+      "id": "node-rss-fetch",
+      "name": "RSS 피드 호출",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 각 RSS 응답을 파싱해서 타이틀 추출\nconst xml = $json.data || '';\nconst type = $('데이터 수집').item.json.type;\nconst profile = $('데이터 수집').item.json.profile;\nconst deptName = $('데이터 수집').item.json.deptName;\n\nfunction parseTitles(xml, max) {\n  const items = [];\n  const itemMatches = xml.matchAll(/<item>([\\s\\S]*?)<\\/item>/g);\n  for (const m of itemMatches) {\n    const block = m[1];\n    const titleMatch = block.match(/<title>(?:<!\\[CDATA\\[)?(.*?)(?:\\]\\]>)?<\\/title>/);\n    const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g,'').trim() : '';\n    if (title && !title.includes('Google News') && title.length > 5) items.push(title);\n    if (items.length >= max) break;\n  }\n  return items;\n}\n\nconst titles = parseTitles(xml, 6);\nreturn [{ json: { type, titles, profile, deptName } }];"
+      },
+      "id": "node-rss-parse",
+      "name": "RSS 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 모든 RSS 결과를 하나로 합치기\nconst allItems = $input.all();\nconst results = {};\nlet profile = null;\nlet deptName = '공과대학';\n\nfor (const item of allItems) {\n  const { type, titles } = item.json;\n  if (!profile) {\n    profile = item.json.profile;\n    deptName = item.json.deptName;\n  }\n  results[type] = titles || [];\n}\n\nconst fmt = (type, max) => {\n  const items = results[type] || [];\n  return items.length > 0 ? items.slice(0,max).map((t,i) => `${i+1}. ${t}`).join('\\n') : '현재 관련 정보가 없습니다.';\n};\n\nconst allContent = `[링커리어 대외활동]\\n${fmt('링커리어',5)}\\n\\n[공모전/대외활동]\\n${fmt('대외활동/공모전',5)}\\n\\n[인턴십/채용]\\n${fmt('인턴십/채용',5)}\\n\\n[업계뉴스(한국어)]\\n${fmt('업계뉴스(한)',5)}\\n\\n[업계뉴스(영어)]\\n${fmt('업계뉴스(영)',4)}\\n\\n[기업뉴스]\\n${fmt('기업뉴스',3)}\\n\\n[대학공지/세미나 - ${deptName}]\\n${fmt('대학공지/세미나',5)}\\n\\n[HackerNews]\\n${fmt('HackerNews',4)}`;\n\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: `당신은 ${profile.name}님의 전담 커리어 코치입니다.\\n\\n프로필:\\n- 전공: ${profile.major}\\n- 희망 진로: ${profile.career_goal}\\n- 관심 분야: ${[...profile.keywords_en, ...profile.keywords_kr].join(', ')}\\n- 강점: ${(profile.strengths||[]).join(', ')}\\n\\n⚠️ 반드시 아래 제공된 실제 데이터만 사용하세요. 없는 정보는 절대 만들지 마세요.\\n\\n아래 5개 섹션으로 작성:\\n\\n🏆 오늘 신청할 대외활동/공모전\\n(각 항목: 제목 + ${profile.name}님에게 왜 좋은지 한 줄)\\n\\n💼 놓치면 안될 채용/인턴 정보\\n(각 항목: 제목 + 왜 지원해볼만한지 한 줄)\\n\\n📰 오늘 꼭 읽어야 할 업계 뉴스\\n(각 항목: 제목 + 핵심 한 줄 요약 + ${profile.name}님과의 관련성)\\n\\n🎓 ${deptName} 관련 대학 공지/세미나\\n(각 항목: 제목 + 참여 추천 이유)\\n\\n🎯 오늘의 커리어 미션\\n(구체적이고 실천 가능한 행동 1가지)`\n    },\n    { role: 'user', content: allContent }\n  ],\n  max_tokens: 3000\n});\n\nreturn [{ json: { body, profile, deptName } }];"
+      },
+      "id": "node-report-prep",
+      "name": "리포트 프롬프트",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upstage.ai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.body }}",
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "options": {}
+      },
+      "id": "node-solar-report",
+      "name": "Solar 리포트 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2440, 400],
+      "credentials": { "httpHeaderAuth": { "id": "upstage-api-key", "name": "Upstage API Key" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportText = $json.choices[0].message.content;\nconst profile = $('리포트 프롬프트').item.json.profile;\nconst deptName = $('리포트 프롬프트').item.json.deptName;\nconst today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });\n\nconst reportHtml = reportText\n  .replace(/^(🏆[^\\n]+)$/gm, '<h2 style=\"color:#f59e0b;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(💼[^\\n]+)$/gm, '<h2 style=\"color:#3b82f6;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(📰[^\\n]+)$/gm, '<h2 style=\"color:#10b981;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(🎓[^\\n]+)$/gm, '<h2 style=\"color:#8b5cf6;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(🎯[^\\n]+)$/gm, '<h2 style=\"color:#ef4444;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(\\d+\\.\\s.+)$/gm, '<p style=\"margin:6px 0 6px 16px;\">$1</p>')\n  .replace(/\\n/g, '<br>');\n\nconst strengths = (profile.strengths||[]).map(s => `<li>${s}</li>`).join('');\nconst growthAreas = (profile.growth_areas||[]).map(g => `<li>${g}</li>`).join('');\n\nconst html = `<!DOCTYPE html>\n<html>\n<head><meta charset='utf-8'></head>\n<body style='font-family:-apple-system,sans-serif;max-width:640px;margin:0 auto;padding:20px;color:#333;'>\n\n  <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:28px;border-radius:12px;color:white;margin-bottom:24px;'>\n    <h1 style='margin:0 0 4px;font-size:22px;'>📬 ${profile.name}님의 맞춤 커리어 리포트</h1>\n    <p style='margin:0;opacity:0.85;font-size:13px;'>${today}</p>\n    <p style='margin:8px 0 0;opacity:0.95;font-size:14px;'>📌 ${profile.summary}</p>\n  </div>\n\n  <div style='background:#f8f9ff;border-left:4px solid #667eea;padding:18px;border-radius:8px;margin-bottom:20px;'>\n    <h2 style='margin:0 0 10px;color:#667eea;font-size:16px;'>🔍 AI가 본 당신</h2>\n    <p style='margin:0;line-height:1.7;font-size:14px;'>${profile.career_analysis}</p>\n  </div>\n\n  <div style='display:flex;gap:12px;margin-bottom:20px;'>\n    <div style='flex:1;background:#fff;border:1px solid #e8ecff;padding:14px;border-radius:8px;'>\n      <h3 style='margin:0 0 8px;font-size:14px;'>💪 강점</h3>\n      <ul style='margin:0;padding-left:18px;color:#555;font-size:13px;'>${strengths}</ul>\n    </div>\n    <div style='flex:1;background:#fff;border:1px solid #e8ecff;padding:14px;border-radius:8px;'>\n      <h3 style='margin:0 0 8px;font-size:14px;'>🌱 성장 포인트</h3>\n      <ul style='margin:0;padding-left:18px;color:#555;font-size:13px;'>${growthAreas}</ul>\n    </div>\n  </div>\n\n  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0;'>\n\n  <div style='line-height:1.7;font-size:14px;'>\n    ${reportHtml}\n  </div>\n\n  <p style='color:#9ca3af;font-size:11px;text-align:center;margin-top:32px;'>Powered by Upstage Solar AI</p>\n</body>\n</html>`;\n\nreturn [{ json: { html, subject: `[${today}] ${profile.name}님의 맞춤 커리어 액션 리포트`, toEmail: profile.email } }];"
+      },
+      "id": "node-email-prep",
+      "name": "이메일 포맷",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.SENDER_EMAIL }}",
+        "toEmail": "={{ $json.toEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "node-gmail",
+      "name": "Gmail 발송",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2880, 400],
+      "credentials": { "smtp": { "id": "gmail-smtp", "name": "Gmail SMTP" } }
+    }
+  ],
+  "connections": {
+    "프로필 폼": { "main": [[{ "node": "Document Parse", "type": "main", "index": 0 }]] },
+    "Document Parse": { "main": [[{ "node": "텍스트 추출", "type": "main", "index": 0 }]] },
+    "텍스트 추출": { "main": [[{ "node": "커리어 분석 프롬프트", "type": "main", "index": 0 }]] },
+    "커리어 분석 프롬프트": { "main": [[{ "node": "Solar 커리어 분석", "type": "main", "index": 0 }]] },
+    "Solar 커리어 분석": { "main": [[{ "node": "프로필 파싱", "type": "main", "index": 0 }]] },
+    "프로필 파싱": {
+      "main": [[
+        { "node": "프로필 저장", "type": "main", "index": 0 },
+        { "node": "임베딩 준비", "type": "main", "index": 0 },
+        { "node": "데이터 수집", "type": "main", "index": 0 }
+      ]]
+    },
+    "임베딩 준비": { "main": [[{ "node": "Upstage 임베딩", "type": "main", "index": 0 }]] },
+    "Upstage 임베딩": { "main": [[{ "node": "Supabase 요청 준비", "type": "main", "index": 0 }]] },
+    "Supabase 요청 준비": { "main": [[{ "node": "Supabase 저장", "type": "main", "index": 0 }]] },
+    "데이터 수집": { "main": [[{ "node": "RSS 피드 호출", "type": "main", "index": 0 }]] },
+    "RSS 피드 호출": { "main": [[{ "node": "RSS 파싱", "type": "main", "index": 0 }]] },
+    "RSS 파싱": { "main": [[{ "node": "리포트 프롬프트", "type": "main", "index": 0 }]] },
+    "리포트 프롬프트": { "main": [[{ "node": "Solar 리포트 생성", "type": "main", "index": 0 }]] },
+    "Solar 리포트 생성": { "main": [[{ "node": "이메일 포맷", "type": "main", "index": 0 }]] },
+    "이메일 포맷": { "main": [[{ "node": "Gmail 발송", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": ["career", "upstage", "gmail", "personalized"],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-30T00:00:00.000Z",
+  "versionId": "1"
+}
