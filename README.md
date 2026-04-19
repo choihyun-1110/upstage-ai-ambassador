@@ -27,8 +27,6 @@ JS 동적 렌더링 채용 사이트도 Chrome MCP로 자동 크롤링. Upstage 
 
 **기술 스택:** Claude Code Skills · Upstage Solar Pro · Upstage Document Parse · Chrome MCP
 
-📝 [블로그 포스트](https://velog.io/@choihyun-1110/%EC%B1%84%EC%9A%A9%EA%B3%B5%EA%B3%A0-URL-%ED%95%98%EB%82%98%EB%A1%9C-%EC%A0%84%EC%B2%B4-%EB%B6%84%EC%84%9D-Upstage-Solar-Claude-Code-Skill%EB%A1%9C-JD-Fit-%EB%A7%8C%EB%93%A4%EA%B8%B0)
-
 ---
 
 ### 3. CatchTable Sniper — Claude Code Skill
@@ -39,7 +37,7 @@ JS 동적 렌더링 채용 사이트도 Chrome MCP로 자동 크롤링. Upstage 
 
 **기술 스택:** Claude Code Skills · Chrome MCP
 
-📝 [블로그 포스트](https://velog.io/@choihyun-1110/Upstage-AI-Ambassador-Claude-Code-Skill-%EC%BA%90%EC%B9%98%ED%85%8C%EC%9D%B4%EB%B8%94-%EB%B9%88%EC%9E%90%EB%A6%AC-%EB%82%98%EC%98%A4%EB%A9%B4-AI%EA%B0%80-%EC%9E%90%EB%8F%99%EC%9C%BC%EB%A1%9C-%EC%98%88%EC%95%BD%ED%95%B4%EC%A4%80%EB%8B%A4) · 🔗 [k-skill PR 리뷰 중](https://github.com/choihyun-1110/k-skill/pull/new/feat/catchtable-sniper)
+🔗 [k-skill PR 리뷰 중](https://github.com/choihyun-1110/k-skill/pull/new/feat/catchtable-sniper)
 
 ---
 
@@ -250,17 +248,9 @@ upstage-ai-ambassador/
 │   │   └── SKILL.md
 │   └── catchtable-sniper/
 │       └── SKILL.md
-├── n8n_workflow/
-│   ├── career_advisor.json
-│   └── SETUP_GUIDE.md
-└── blog/
-    ├── mission2-jd-fit-skill.md      # JD Fit 스킬 소개 포스트
-    ├── mission2-jd-fit-review.md     # SK하이닉스 후기 포스트
-    ├── catchtable-sniper.md          # CatchTable Sniper 포스트
-    └── thumbnails/
-        ├── thumb1.html               # JD Fit 썸네일
-        ├── thumb2.html               # SK하이닉스 후기 썸네일
-        └── thumb3.html               # CatchTable Sniper 썸네일
+└── n8n_workflow/
+    ├── career_advisor.json
+    └── SETUP_GUIDE.md
 ```
 
 ---
