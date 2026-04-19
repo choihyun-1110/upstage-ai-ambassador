@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upstage AI Ambassador 2기 — 최현</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      color: #333;
+    }
+    h1, h2, h3 {
+      font-family: 'Google Sans', 'Noto Sans', sans-serif;
+    }
+    .back-link {
+      padding: 1.2rem 1.5rem;
+    }
+    .back-link a {
+      color: #555;
+      font-size: 0.9rem;
+    }
+    .back-link a:hover { color: #000; }
+
+    .hero-body {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+    .badge-tag {
+      display: inline-block;
+      background: #f0f0ff;
+      color: #5b5bd6;
+      border: 1px solid #d0d0ff;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.9rem;
+    }
+    .powered-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: #555;
+      margin-top: 0.6rem;
+    }
+    .powered-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .project-block {
+      margin-bottom: 2.5rem;
+    }
+    .project-image img {
+      border-radius: 8px;
+      border: 1px solid #eee;
+      object-fit: cover;
+      width: 100%;
+      max-height: 120px;
+    }
+    .project-image-placeholder {
+      border-radius: 8px;
+      border: 1px solid #eee;
+      background: #f5f5f5;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+    .column.is-2 { max-width: 160px; }
+    .section { padding: 2rem 1.5rem; }
+    .project-title a {
+      color: #222;
+      font-weight: 700;
+    }
+    .project-title a:hover { color: #5b5bd6; }
+    .project-venue {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 0.4rem;
+    }
+    .project-description {
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 0.8rem;
+    }
+    .tag-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 0.8rem;
+    }
+    .stack-tag {
+      background: #f5f5f5;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      color: #666;
+    }
+    .button.is-ghost {
+      padding-left: 0.4rem;
+      padding-right: 0.8rem;
+    }
+    hr { background-color: #f0f0f0; height: 1px; }
+
+    .highlight-card {
+      border-radius: 10px;
+      border: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+      height: 100%;
+    }
+    .highlight-card .card-image img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 0;
+      border: none;
+    }
+    .highlight-title a { color: #222; font-weight: 600; }
+    .highlight-title a:hover { color: #5b5bd6; }
+
+    footer { background: #fafafa; }
+    .footer-links a { color: #888; margin: 0 0.5rem; font-size: 1.1rem; }
+    .footer-links a:hover { color: #333; }
+  </style>
+</head>
+<body>
+
+<!-- Back link -->
+<div class="back-link">
+  <a href="https://choihyun-1110.github.io">
+    ← Back to Portfolio
+  </a>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="badge-tag">Upstage AI Ambassador 2기</div>
+      <h1 class="title is-2" style="margin-bottom:0.5rem">
+        AI 도구를 만들고, 직접 씁니다
+      </h1>
+      <p class="subtitle is-5" style="color:#666; max-width:600px; line-height:1.7">
+        Upstage Solar LLM · Document Parse를 활용한 실전 AI 프로젝트 모음.<br>
+        취업 준비, 커리어 자동화 — 직접 쓸 도구를 직접 만들었습니다.
+      </p>
+      <div class="powered-badge">
+        <div class="powered-dot"></div>
+        Powered by <strong style="margin-left:4px">Upstage Solar Pro</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container is-max-desktop"><hr></div>
+
+<!-- Projects -->
+<section class="section" style="padding-top:2rem">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Projects</h2>
+
+    <!-- Project 1: JD Fit -->
+    <div class="project-block columns">
+      <div class="column is-2">
+        <div class="project-image-placeholder">🔍</div>
+      </div>
+      <div class="column">
+        <div class="content">
+          <h3 class="title is-5 project-title">
+            <a href="https://github.com/choihyun-1110/upstage-ai-ambassador/tree/main/skills/jd-fit">
+              JD Fit — 채용공고 적합도 분석 Claude Code Skill
+            </a>
+          </h3>
+          <div class="project-venue">미션 2 · 2026</div>
+          <p class="project-description">
+            채용공고 URL 하나만 던지면 전체 공고를 자동 크롤링해서 나에게 맞는 공고를 점수로 줄 세워줍니다.
+            기아, 삼성, SK하이닉스 등 JS 동적 렌더링 채용 사이트도 Chrome MCP로 자동 읽기.
+            Upstage Solar Pro로 적합도 분석 (0–100점 + 강점/약점/자소서 포인트).
+          </p>
+          <div class="tag-stack">
+            <span class="stack-tag">Claude Code Skill</span>
+            <span class="stack-tag">Upstage Solar Pro</span>
+            <span class="stack-tag">Document Parse</span>
+            <span class="stack-tag">Chrome MCP</span>
+          </div>
+          <div class="buttons">
+            <a class="button is-small is-light" href="https://github.com/choihyun-1110/upstage-ai-ambassador/tree/main/skills/jd-fit" target="_blank">
+              <span class="icon"><i class="fab fa-github"></i></span>
+              <span>Code</span>
+            </a>
+            <a class="button is-small is-light" href="https://raw.githubusercontent.com/choihyun-1110/upstage-ai-ambassador/main/skills/jd-fit/SKILL.md" download="SKILL.md">
+              <span class="icon"><i class="fas fa-download"></i></span>
+              <span>SKILL.md 다운로드</span>
+            </a>
+            <a class="button is-small is-light" href="https://velog.io/@choihyun-1110" target="_blank">
+              <span class="icon"><i class="fas fa-blog"></i></span>
+              <span>블로그</span>
+            </a>
+          </div>
+
+          <!-- Install instructions -->
+          <div style="background:#f8f8f8; border:1px solid #eee; border-radius:8px; padding:1rem; margin-top:0.5rem">
+            <p style="font-size:0.8rem; font-weight:600; color:#555; margin-bottom:0.5rem">
+              <i class="fas fa-terminal" style="margin-right:6px"></i>설치 방법
+            </p>
+            <code style="font-size:0.78rem; background:none; color:#333; white-space:pre-wrap; display:block; line-height:1.8">mkdir -p ~/.claude/skills/jd-fit
+curl -o ~/.claude/skills/jd-fit/SKILL.md \
+  https://raw.githubusercontent.com/choihyun-1110/upstage-ai-ambassador/main/skills/jd-fit/SKILL.md</code>
+            <p style="font-size:0.78rem; color:#888; margin-top:0.5rem">설치 후 Claude Code에서 채용공고 URL을 그냥 붙여넣으면 자동으로 분석합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Project 2: n8n Career Advisor -->
+    <div class="project-block columns">
+      <div class="column is-2">
+        <div class="project-image-placeholder">🤖</div>
+      </div>
+      <div class="column">
+        <div class="content">
+          <h3 class="title is-5 project-title">
+            <a href="https://github.com/choihyun-1110/upstage-ai-ambassador/tree/main/n8n_workflow">
+              AI 커리어 어드바이저 — n8n 노코드 자동화
+            </a>
+          </h3>
+          <div class="project-venue">미션 1 · 2026</div>
+          <p class="project-description">
+            이력서/자기소개서 PDF를 업로드하면 AI가 프로필을 분석하고,
+            맞춤 대외활동·채용공고·업계 뉴스를 이메일로 발송합니다.
+            Upstage Document Parse로 PDF 파싱, Solar Pro로 분석, Supabase pgvector로 벡터 검색.
+          </p>
+          <div class="tag-stack">
+            <span class="stack-tag">n8n</span>
+            <span class="stack-tag">Upstage Document Parse</span>
+            <span class="stack-tag">Solar Pro</span>
+            <span class="stack-tag">Supabase pgvector</span>
+            <span class="stack-tag">Gmail SMTP</span>
+          </div>
+          <div class="buttons">
+            <a class="button is-small is-light" href="https://github.com/choihyun-1110/upstage-ai-ambassador/tree/main/n8n_workflow" target="_blank">
+              <span class="icon"><i class="fab fa-github"></i></span>
+              <span>Code</span>
+            </a>
+            <a class="button is-small is-light" href="https://velog.io/@choihyun-1110" target="_blank">
+              <span class="icon"><i class="fas fa-blog"></i></span>
+              <span>블로그</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content footer-links has-text-centered">
+      <a href="mailto:chlgusla1@gmail.com"><i class="fas fa-envelope"></i></a>
+      <a href="https://github.com/choihyun-1110" target="_blank"><i class="fab fa-github"></i></a>
+      <a href="https://velog.io/@choihyun-1110" target="_blank"><i class="fas fa-blog"></i></a>
+      <a href="https://choihyun-1110.github.io" target="_blank"><i class="fas fa-home"></i></a>
+    </div>
+    <div class="has-text-centered" style="font-size:0.8rem; color:#aaa; margin-top:0.5rem">
+      Powered by <a href="https://console.upstage.ai" style="color:#aaa">Upstage Solar AI</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

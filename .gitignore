@@ -1,13 +1,29 @@
+# 블로그 초안 (공개 전)
+blog/
+
 # 개인 정보
 n8n_workflow/user_profile.json
+.claude/
 
 # 구버전 워크플로우
 n8n_workflow/tech_news_bot.json
 n8n_workflow/profile_register.json
 n8n_workflow/daily_action_report.json
 
-# 기타
+# 로컬 환경
 Todo.md
 .DS_Store
 *.log
 .env
+.env.local
+
+# 오피스 임시 파일
+~$*.pptx
+~$*.docx
+~$*.xlsx
+
+# 공개 저장소에 불필요한 발표 자료 / 개인 문서
+[[]Ext[]]*.pptx
+hackathon_plan*.pptx
+*기획안*.pptx
+프로젝트_계획.md

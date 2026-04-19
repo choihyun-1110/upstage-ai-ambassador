@@ -214,6 +214,45 @@ n8n 워크플로우와 비교했을 때 Claude Code Skill의 장점이 뚜렷하
 
 ---
 
+## 한화투자증권도 돌려봤다
+
+기아 결과 보고 바로 한화투자증권 2026 상반기 신입 채용도 넣어봤다.
+
+> [📸 스크린샷: 한화투자증권 JD 페이지 — 이미지 기반 디자인]
+
+이 공고는 전체가 이미지 기반(검정 배경 디자인)이라 `get_page_text`로는 텍스트가 안 나왔다. Chrome MCP로 스크롤하며 각 섹션을 직접 파싱했고, 이력서 PDF는 Upstage Document Parse로 텍스트 추출 후 함께 Solar Pro에 넣었다.
+
+결과:
+
+```
+🏆 한화투자증권 적합도 분석 결과
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+| 포지션             | 점수 | 추천     |
+|--------------------|------|----------|
+| 디지털금융 Trading | 85점 | ✅ 추천   |
+| 디지털금융 IT      | 75점 | ✅ 추천   |
+| 디지털 기획        | 65점 | ⚠️ 조건부 |
+| 글로벌 투자        | 50점 | ❌        |
+| 본사영업 IB        | 40점 | ❌        |
+```
+
+> [📸 스크린샷: Solar Pro 분석 결과 출력]
+
+**디지털금융 Trading 85점 — Solar Pro가 꼽은 매칭 근거:**
+- Python/C++ 언어 능력 → JD 우대사항 `C/C++, Python, SQL, Linux` 직결
+- AI 프로젝트 다수 → 퀀트 모델 개발 가능성 + "AI 기반 개발 도구 활용 경험자" 우대 매칭
+- AI and Financial Engineering 수강(A+) → 금융공학 기초 보유
+
+Solar Pro가 추천한 자소서 포인트:
+1. Long-tail 불균형 해결 경험 → 금융 데이터 이상탐지/리스크 평가 연결
+2. Agent 시스템 개발 경험 → 트레이딩 시스템 자동화 맥락으로 어필
+3. 금융공학 수강 이력 → ELS 헤지운용/ETF LP 업무 탐구 의지 명시
+
+재밌는 건 SK하이닉스 기반기술도 85점이었는데 한화 디지털금융도 85점이 나왔다는 것. 반도체 AI/DT와 금융 퀀트, 방향은 다른데 핵심 역량 매핑이 비슷하게 잡혔다.
+
+---
+
 ## 다음 단계
 
 미션2 결과물을 실제로 써보면서 드는 생각이 있다.
@@ -222,11 +261,10 @@ n8n 워크플로우와 비교했을 때 Claude Code Skill의 장점이 뚜렷하
 
 미션3에서 이걸 커리어 어드바이저 전체 플로우와 합칠 계획이다.
 
-→ **[GitHub 링크]**
-https://github.com/choihyun-1110/upstage-ai-ambassador
+→ **GitHub**: https://github.com/choihyun-1110/upstage-ai-ambassador
 
 ---
 
 *Powered by [Upstage Solar AI](https://console.upstage.ai)*
 
-**태그:** `#Upstage` `#ClaudeCode` `#Skill` `#취업` `#JD분석` `#대학생` `#커리어` `#SolarLLM` `#AI앰배서더`
+**태그:** `#Upstage` `#ClaudeCode` `#Skill` `#취업` `#JD분석` `#대학생` `#커리어` `#SolarLLM` `#AI앰배서더` `#한화투자증권`

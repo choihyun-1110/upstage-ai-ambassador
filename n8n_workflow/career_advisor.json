@@ -53,7 +53,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const { parsedText, name, email } = $json;\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: `당신은 커리어 분석 전문가입니다. 아래 문서를 분석하고 반드시 JSON 형식으로만 응답하세요:\\n{\\n  \"major\": \"전공 또는 전문 분야\",\\n  \"career_goal\": \"희망 진로\",\\n  \"keywords_en\": [\"영어키워드1\",\"영어키워드2\",\"영어키워드3\"],\\n  \"keywords_kr\": [\"한국어1\",\"한국어2\",\"한국어3\"],\\n  \"company\": \"관심 기업명 (없으면 빈 문자열)\",\\n  \"summary\": \"이 사람을 한 줄로 요약\",\\n  \"career_analysis\": \"이 사람이 지금까지 해온 것들과 강점, 방향성을 3-4문장으로 따뜻하게 분석. 반드시 '당신은'으로 시작\",\\n  \"strengths\": [\"강점1\",\"강점2\",\"강점3\"],\\n  \"growth_areas\": [\"성장 포인트1\",\"성장 포인트2\"],\\n  \"department\": \"단과대/학부 분야 (예: 전기전자, 컴퓨터, 경영, 의학, 기계 등 영문으로)\"\\n}`\n    },\n    { role: 'user', content: `이 문서를 분석해줘:\\n\\n${parsedText}` }\n  ],\n  max_tokens: 1000\n});\nreturn [{ json: { body, name, email } }];"
+        "jsCode": "const { parsedText, name, email } = $json;\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: '당신은 커리어 분석 전문가입니다. 반드시 순수 JSON만 출력하세요. 설명, 마크다운 코드블록, 앞뒤 텍스트 없이 { 로 시작해서 } 로 끝나는 JSON만 출력하세요.'\n    },\n    {\n      role: 'user',\n      content: `아래 문서를 분석해서 다음 JSON 형식으로만 답해줘. JSON 외 다른 텍스트는 절대 쓰지 마:\\n{\\n  \"major\": \"전공 또는 전문 분야\",\\n  \"career_goal\": \"희망 진로\",\\n  \"keywords_en\": [\"영어키워드1\",\"영어키워드2\",\"영어키워드3\"],\\n  \"keywords_kr\": [\"한국어1\",\"한국어2\",\"한국어3\"],\\n  \"company\": \"관심 기업명 (없으면 빈 문자열)\",\\n  \"summary\": \"이 사람을 한 줄로 요약\",\\n  \"career_analysis\": \"이 사람이 지금까지 해온 것들과 강점, 방향성을 3-4문장으로 따뜻하게 분석. 반드시 당신은 으로 시작\",\\n  \"strengths\": [\"강점1\",\"강점2\",\"강점3\"],\\n  \"growth_areas\": [\"성장 포인트1\",\"성장 포인트2\"],\\n  \"department\": \"electrical 또는 computer 또는 mechanical 또는 chemical 또는 business 중 하나\"\\n}\\n\\n문서:\\n${parsedText}`\n    }\n  ],\n  max_tokens: 1200\n});\nreturn [{ json: { body, name, email } }];"
       },
       "id": "node-prep-llm",
       "name": "커리어 분석 프롬프트",
@@ -93,80 +93,14 @@
     },
     {
       "parameters": {
-        "operation": "write",
-        "fileName": "/Users/hyun/Upstage_AI_Ambassador/n8n_workflow/user_profile.json",
-        "dataPropertyName": "data"
+        "jsCode": "// TODO: Supabase/임베딩 저장은 나중에 추가\nreturn [];"
       },
-      "id": "node-save",
-      "name": "프로필 저장",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [1560, 620]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Upstage Embeddings 준비\nconst profile = $json;\nconst parsedText = $('텍스트 추출').item.json.parsedText || '';\nconst embeddingInput = `이름: ${profile.name}\\n전공: ${profile.major}\\n희망진로: ${profile.career_goal}\\n관심분야: ${[...profile.keywords_en, ...profile.keywords_kr].join(', ')}\\n강점: ${profile.strengths.join(', ')}\\n\\n${parsedText}`.substring(0, 2000);\nconst body = JSON.stringify({ model: 'embedding-passage', input: embeddingInput });\nreturn [{ json: { body, profile } }];"
-      },
-      "id": "node-embed-prep",
-      "name": "임베딩 준비",
+      "id": "node-placeholder",
+      "name": "저장 (비활성)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 200]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.upstage.ai/v1/solar/embeddings",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "string",
-        "body": "={{ $json.body }}",
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "options": {}
-      },
-      "id": "node-upstage-embed",
-      "name": "Upstage 임베딩",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1780, 200],
-      "credentials": { "httpHeaderAuth": { "id": "upstage-api-key", "name": "Upstage API Key" } }
-    },
-    {
-      "parameters": {
-        "jsCode": "const embedding = $json.data[0].embedding;\nconst profile = $('임베딩 준비').item.json.profile;\nreturn [{ json: { body: JSON.stringify({\n  name: profile.name,\n  email: profile.email,\n  summary: profile.summary,\n  major: profile.major,\n  career_goal: profile.career_goal,\n  keywords: [...(profile.keywords_en||[]), ...(profile.keywords_kr||[])],\n  embedding\n}) } }];"
-      },
-      "id": "node-supabase-prep",
-      "name": "Supabase 요청 준비",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [2000, 200]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://pgtslyahrtemsimnzdpc.supabase.co/rest/v1/user_profiles",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "sb_publishable_2U-vxMOsTU0bb4YN9SXxqQ_kulIxfMG" },
-            { "name": "Authorization", "value": "Bearer sb_publishable_2U-vxMOsTU0bb4YN9SXxqQ_kulIxfMG" },
-            { "name": "Prefer", "value": "return=minimal" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "string",
-        "body": "={{ $json.body }}",
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "options": {}
-      },
-      "id": "node-supabase",
-      "name": "Supabase 저장",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2220, 200]
+      "position": [1560, 620],
+      "disabled": true
     },
     {
       "parameters": {
@@ -193,7 +127,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 각 RSS 응답을 파싱해서 타이틀 추출\nconst xml = $json.data || '';\nconst type = $('데이터 수집').item.json.type;\nconst profile = $('데이터 수집').item.json.profile;\nconst deptName = $('데이터 수집').item.json.deptName;\n\nfunction parseTitles(xml, max) {\n  const items = [];\n  const itemMatches = xml.matchAll(/<item>([\\s\\S]*?)<\\/item>/g);\n  for (const m of itemMatches) {\n    const block = m[1];\n    const titleMatch = block.match(/<title>(?:<!\\[CDATA\\[)?(.*?)(?:\\]\\]>)?<\\/title>/);\n    const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g,'').trim() : '';\n    if (title && !title.includes('Google News') && title.length > 5) items.push(title);\n    if (items.length >= max) break;\n  }\n  return items;\n}\n\nconst titles = parseTitles(xml, 6);\nreturn [{ json: { type, titles, profile, deptName } }];"
+        "jsCode": "// 각 RSS 응답을 파싱해서 타이틀 + 링크 추출\nconst xml = $json.data || '';\nconst type = $('데이터 수집').item.json.type;\nconst profile = $('데이터 수집').item.json.profile;\nconst deptName = $('데이터 수집').item.json.deptName;\n\nfunction parseItems(xml, max) {\n  const items = [];\n  const itemMatches = xml.matchAll(/<item>([\\s\\S]*?)<\\/item>/g);\n  for (const m of itemMatches) {\n    const block = m[1];\n    const titleMatch = block.match(/<title>(?:<!\\[CDATA\\[)?(.*?)(?:\\]\\]>)?<\\/title>/);\n    const linkMatch = block.match(/<link>([^<]+)<\\/link>/) || block.match(/<guid[^>]*>([^<]+)<\\/guid>/);\n    const sourceMatch = block.match(/<source[^>]*>(?:<!\\[CDATA\\[)?(.*?)(?:\\]\\]>)?<\\/source>/);\n    const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g,'').trim() : '';\n    const link = linkMatch ? linkMatch[1].trim() : '';\n    const source = sourceMatch ? sourceMatch[1].trim() : '';\n    if (title && !title.includes('Google News') && title.length > 5) {\n      items.push({ title, link, source });\n    }\n    if (items.length >= max) break;\n  }\n  return items;\n}\n\nconst items = parseItems(xml, 6);\nreturn [{ json: { type, items, profile, deptName } }];"
       },
       "id": "node-rss-parse",
       "name": "RSS 파싱",
@@ -203,7 +137,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 모든 RSS 결과를 하나로 합치기\nconst allItems = $input.all();\nconst results = {};\nlet profile = null;\nlet deptName = '공과대학';\n\nfor (const item of allItems) {\n  const { type, titles } = item.json;\n  if (!profile) {\n    profile = item.json.profile;\n    deptName = item.json.deptName;\n  }\n  results[type] = titles || [];\n}\n\nconst fmt = (type, max) => {\n  const items = results[type] || [];\n  return items.length > 0 ? items.slice(0,max).map((t,i) => `${i+1}. ${t}`).join('\\n') : '현재 관련 정보가 없습니다.';\n};\n\nconst allContent = `[링커리어 대외활동]\\n${fmt('링커리어',5)}\\n\\n[공모전/대외활동]\\n${fmt('대외활동/공모전',5)}\\n\\n[인턴십/채용]\\n${fmt('인턴십/채용',5)}\\n\\n[업계뉴스(한국어)]\\n${fmt('업계뉴스(한)',5)}\\n\\n[업계뉴스(영어)]\\n${fmt('업계뉴스(영)',4)}\\n\\n[기업뉴스]\\n${fmt('기업뉴스',3)}\\n\\n[대학공지/세미나 - ${deptName}]\\n${fmt('대학공지/세미나',5)}\\n\\n[HackerNews]\\n${fmt('HackerNews',4)}`;\n\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: `당신은 ${profile.name}님의 전담 커리어 코치입니다.\\n\\n프로필:\\n- 전공: ${profile.major}\\n- 희망 진로: ${profile.career_goal}\\n- 관심 분야: ${[...profile.keywords_en, ...profile.keywords_kr].join(', ')}\\n- 강점: ${(profile.strengths||[]).join(', ')}\\n\\n⚠️ 반드시 아래 제공된 실제 데이터만 사용하세요. 없는 정보는 절대 만들지 마세요.\\n\\n아래 5개 섹션으로 작성:\\n\\n🏆 오늘 신청할 대외활동/공모전\\n(각 항목: 제목 + ${profile.name}님에게 왜 좋은지 한 줄)\\n\\n💼 놓치면 안될 채용/인턴 정보\\n(각 항목: 제목 + 왜 지원해볼만한지 한 줄)\\n\\n📰 오늘 꼭 읽어야 할 업계 뉴스\\n(각 항목: 제목 + 핵심 한 줄 요약 + ${profile.name}님과의 관련성)\\n\\n🎓 ${deptName} 관련 대학 공지/세미나\\n(각 항목: 제목 + 참여 추천 이유)\\n\\n🎯 오늘의 커리어 미션\\n(구체적이고 실천 가능한 행동 1가지)`\n    },\n    { role: 'user', content: allContent }\n  ],\n  max_tokens: 3000\n});\n\nreturn [{ json: { body, profile, deptName } }];"
+        "jsCode": "// 모든 RSS 결과를 하나로 합치기 (링크 포함)\nconst allItems = $input.all();\nconst results = {};\nlet profile = null;\nlet deptName = '공과대학';\n\nfor (const item of allItems) {\n  const { type, items } = item.json;\n  if (!profile) {\n    profile = item.json.profile;\n    deptName = item.json.deptName;\n  }\n  results[type] = items || [];\n}\n\n// Solar에게는 오늘의 미션만 요청 (데이터 섹션은 직접 HTML로 만듦)\nconst fmt = (type, max) => {\n  const items = results[type] || [];\n  return items.length > 0 ? items.slice(0,max).map((t,i) => `${i+1}. ${t.title}`).join('\\n') : '없음';\n};\n\nconst allContent = `[링커리어/대외활동]\\n${fmt('링커리어',4)}\\n${fmt('대외활동/공모전',3)}\\n\\n[채용/인턴]\\n${fmt('인턴십/채용',4)}\\n\\n[뉴스]\\n${fmt('업계뉴스(한)',3)}\\n${fmt('업계뉴스(영)',2)}\\n\\n[대학공지]\\n${fmt('대학공지/세미나',3)}`;\n\nconst body = JSON.stringify({\n  model: 'solar-pro3',\n  messages: [\n    {\n      role: 'system',\n      content: `당신은 ${profile.name}님의 커리어 코치입니다. 프로필: 전공 ${profile.major}, 희망진로 ${profile.career_goal}, 관심분야 ${[...profile.keywords_en, ...profile.keywords_kr].join(', ')}\\n\\n위 실제 데이터를 참고해서 🎯 오늘의 커리어 미션 딱 1가지만 제안하세요. 2~3문장으로 구체적이고 실천 가능하게. 마크다운 사용 금지.`\n    },\n    { role: 'user', content: allContent }\n  ],\n  max_tokens: 300\n});\n\nreturn [{ json: { body, profile, deptName, results } }];"
       },
       "id": "node-report-prep",
       "name": "리포트 프롬프트",
@@ -233,7 +167,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const reportText = $json.choices[0].message.content;\nconst profile = $('리포트 프롬프트').item.json.profile;\nconst deptName = $('리포트 프롬프트').item.json.deptName;\nconst today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });\n\nconst reportHtml = reportText\n  .replace(/^(🏆[^\\n]+)$/gm, '<h2 style=\"color:#f59e0b;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(💼[^\\n]+)$/gm, '<h2 style=\"color:#3b82f6;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(📰[^\\n]+)$/gm, '<h2 style=\"color:#10b981;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(🎓[^\\n]+)$/gm, '<h2 style=\"color:#8b5cf6;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(🎯[^\\n]+)$/gm, '<h2 style=\"color:#ef4444;margin:24px 0 8px;\">$1</h2>')\n  .replace(/^(\\d+\\.\\s.+)$/gm, '<p style=\"margin:6px 0 6px 16px;\">$1</p>')\n  .replace(/\\n/g, '<br>');\n\nconst strengths = (profile.strengths||[]).map(s => `<li>${s}</li>`).join('');\nconst growthAreas = (profile.growth_areas||[]).map(g => `<li>${g}</li>`).join('');\n\nconst html = `<!DOCTYPE html>\n<html>\n<head><meta charset='utf-8'></head>\n<body style='font-family:-apple-system,sans-serif;max-width:640px;margin:0 auto;padding:20px;color:#333;'>\n\n  <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:28px;border-radius:12px;color:white;margin-bottom:24px;'>\n    <h1 style='margin:0 0 4px;font-size:22px;'>📬 ${profile.name}님의 맞춤 커리어 리포트</h1>\n    <p style='margin:0;opacity:0.85;font-size:13px;'>${today}</p>\n    <p style='margin:8px 0 0;opacity:0.95;font-size:14px;'>📌 ${profile.summary}</p>\n  </div>\n\n  <div style='background:#f8f9ff;border-left:4px solid #667eea;padding:18px;border-radius:8px;margin-bottom:20px;'>\n    <h2 style='margin:0 0 10px;color:#667eea;font-size:16px;'>🔍 AI가 본 당신</h2>\n    <p style='margin:0;line-height:1.7;font-size:14px;'>${profile.career_analysis}</p>\n  </div>\n\n  <div style='display:flex;gap:12px;margin-bottom:20px;'>\n    <div style='flex:1;background:#fff;border:1px solid #e8ecff;padding:14px;border-radius:8px;'>\n      <h3 style='margin:0 0 8px;font-size:14px;'>💪 강점</h3>\n      <ul style='margin:0;padding-left:18px;color:#555;font-size:13px;'>${strengths}</ul>\n    </div>\n    <div style='flex:1;background:#fff;border:1px solid #e8ecff;padding:14px;border-radius:8px;'>\n      <h3 style='margin:0 0 8px;font-size:14px;'>🌱 성장 포인트</h3>\n      <ul style='margin:0;padding-left:18px;color:#555;font-size:13px;'>${growthAreas}</ul>\n    </div>\n  </div>\n\n  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0;'>\n\n  <div style='line-height:1.7;font-size:14px;'>\n    ${reportHtml}\n  </div>\n\n  <p style='color:#9ca3af;font-size:11px;text-align:center;margin-top:32px;'>Powered by Upstage Solar AI</p>\n</body>\n</html>`;\n\nreturn [{ json: { html, subject: `[${today}] ${profile.name}님의 맞춤 커리어 액션 리포트`, toEmail: profile.email } }];"
+        "jsCode": "const mission = $json.choices[0].message.content.replace(/\\*\\*([^*]+)\\*\\*/g,'$1').replace(/\\*([^*]+)\\*/g,'$1').trim();\nconst profile = $('리포트 프롬프트').item.json.profile;\nconst deptName = $('리포트 프롬프트').item.json.deptName;\nconst results = $('리포트 프롬프트').item.json.results || {};\nconst today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });\n\n// RSS 아이템을 링크 카드 HTML로 변환\nconst buildCards = (types, max, borderColor) => {\n  const items = [];\n  for (const type of types) {\n    for (const item of (results[type] || [])) {\n      items.push(item);\n      if (items.length >= max) break;\n    }\n    if (items.length >= max) break;\n  }\n  if (items.length === 0) return '<p style=\"color:#9ca3af;font-size:13px;margin:8px 0;\">현재 관련 정보가 없습니다.</p>';\n  return items.map(item => {\n    const titleHtml = item.link\n      ? `<a href=\"${item.link}\" style=\"color:#1d4ed8;font-weight:600;text-decoration:none;font-size:14px;\">${item.title}</a>`\n      : `<span style=\"font-weight:600;font-size:14px;\">${item.title}</span>`;\n    const sourceHtml = item.source ? `<span style=\"font-size:11px;color:#9ca3af;margin-left:6px;\">· ${item.source}</span>` : '';\n    return `<div style=\"margin:8px 0;padding:10px 14px;background:#f9fafb;border-radius:8px;border-left:3px solid ${borderColor};\">${titleHtml}${sourceHtml}</div>`;\n  }).join('');\n};\n\n// 대학공지: 출처 표시 강화\nconst buildUniCards = (max) => {\n  const items = results['대학공지/세미나'] || [];\n  if (items.length === 0) return '<p style=\"color:#9ca3af;font-size:13px;margin:8px 0;\">현재 관련 정보가 없습니다.</p>';\n  return items.slice(0, max).map(item => {\n    const titleHtml = item.link\n      ? `<a href=\"${item.link}\" style=\"color:#1d4ed8;font-weight:600;text-decoration:none;font-size:14px;\">${item.title}</a>`\n      : `<span style=\"font-weight:600;font-size:14px;\">${item.title}</span>`;\n    const sourceHtml = item.source\n      ? `<div style=\"margin-top:4px;\"><a href=\"${item.link||'#'}\" style=\"font-size:11px;color:#8b5cf6;text-decoration:none;\">📎 ${item.source} 바로가기</a></div>`\n      : '';\n    return `<div style=\"margin:8px 0;padding:10px 14px;background:#f9fafb;border-radius:8px;border-left:3px solid #8b5cf6;\">${titleHtml}${sourceHtml}</div>`;\n  }).join('');\n};\n\nconst strengths = (profile.strengths||[]).map(s => `<li style=\"margin:4px 0;\">${s}</li>`).join('');\nconst growthAreas = (profile.growth_areas||[]).map(g => `<li style=\"margin:4px 0;\">${g}</li>`).join('');\nconst hasAnalysis = profile.career_analysis && profile.career_analysis !== '분석 중 오류가 발생했습니다.';\n\nconst html = `<!DOCTYPE html>\n<html>\n<head><meta charset='utf-8'></head>\n<body style='font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#333;background:#f3f4f6;'>\n<div style='background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);'>\n\n  <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:24px 28px;color:white;'>\n    <h1 style='margin:0 0 4px;font-size:20px;font-weight:700;'>📬 ${profile.name}님의 맞춤 커리어 리포트</h1>\n    <p style='margin:0;opacity:0.85;font-size:13px;'>${today}</p>\n    ${profile.summary && profile.summary !== '분석 오류' ? `<p style='margin:10px 0 0;background:rgba(255,255,255,0.15);padding:8px 12px;border-radius:8px;font-size:13px;'>📌 ${profile.summary}</p>` : ''}\n  </div>\n\n  <div style='padding:20px 24px;'>\n\n    ${hasAnalysis ? `\n    <div style='background:#f8f9ff;border-left:4px solid #667eea;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:16px;'>\n      <h2 style='margin:0 0 8px;color:#667eea;font-size:14px;font-weight:700;'>🔍 AI가 본 당신</h2>\n      <p style='margin:0;line-height:1.8;font-size:13px;color:#444;'>${profile.career_analysis}</p>\n    </div>\n    <div style='display:flex;gap:10px;margin-bottom:20px;'>\n      <div style='flex:1;background:#fff7ed;padding:12px;border-radius:8px;'>\n        <div style='font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;'>💪 강점</div>\n        <ul style='margin:0;padding-left:14px;color:#555;font-size:12px;'>${strengths}</ul>\n      </div>\n      <div style='flex:1;background:#f0fdf4;padding:12px;border-radius:8px;'>\n        <div style='font-size:12px;font-weight:700;color:#166534;margin-bottom:6px;'>🌱 성장 포인트</div>\n        <ul style='margin:0;padding-left:14px;color:#555;font-size:12px;'>${growthAreas}</ul>\n      </div>\n    </div>` : ''}\n\n    <h2 style='color:#f59e0b;font-size:15px;margin:20px 0 8px;border-bottom:2px solid #fef3c7;padding-bottom:6px;'>🏆 오늘 신청할 대외활동/공모전</h2>\n    ${buildCards(['링커리어','대외활동/공모전'], 5, '#f59e0b')}\n\n    <h2 style='color:#3b82f6;font-size:15px;margin:20px 0 8px;border-bottom:2px solid #dbeafe;padding-bottom:6px;'>💼 놓치면 안될 채용/인턴 정보</h2>\n    ${buildCards(['인턴십/채용'], 5, '#3b82f6')}\n\n    <h2 style='color:#10b981;font-size:15px;margin:20px 0 8px;border-bottom:2px solid #d1fae5;padding-bottom:6px;'>📰 오늘 꼭 읽어야 할 업계 뉴스</h2>\n    ${buildCards(['업계뉴스(한)','업계뉴스(영)','HackerNews'], 6, '#10b981')}\n\n    <h2 style='color:#8b5cf6;font-size:15px;margin:20px 0 8px;border-bottom:2px solid #ede9fe;padding-bottom:6px;'>🎓 ${deptName} 관련 대학 공지/세미나</h2>\n    ${buildUniCards(5)}\n\n    <div style='background:#fef2f2;border-radius:10px;padding:16px;margin-top:20px;'>\n      <h2 style='color:#ef4444;font-size:15px;margin:0 0 8px;'>🎯 오늘의 커리어 미션</h2>\n      <p style='margin:0;font-size:14px;line-height:1.8;color:#333;'>${mission}</p>\n    </div>\n\n  </div>\n\n  <div style='background:#f9fafb;padding:14px 24px;border-top:1px solid #e5e7eb;text-align:center;'>\n    <p style='margin:0;color:#9ca3af;font-size:11px;'>Powered by Upstage Solar AI · n8n 자동화</p>\n  </div>\n\n</div>\n</body>\n</html>`;\n\nreturn [{ json: { html, subject: `[${today}] ${profile.name}님의 맞춤 커리어 액션 리포트`, toEmail: profile.email } }];"
       },
       "id": "node-email-prep",
       "name": "이메일 포맷",
@@ -243,7 +177,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "={{ $vars.SENDER_EMAIL }}",
+        "fromEmail": "chlgusla1@gmail.com",
         "toEmail": "={{ $json.toEmail }}",
         "subject": "={{ $json.subject }}",
         "emailFormat": "html",
@@ -266,14 +200,9 @@
     "Solar 커리어 분석": { "main": [[{ "node": "프로필 파싱", "type": "main", "index": 0 }]] },
     "프로필 파싱": {
       "main": [[
-        { "node": "프로필 저장", "type": "main", "index": 0 },
-        { "node": "임베딩 준비", "type": "main", "index": 0 },
         { "node": "데이터 수집", "type": "main", "index": 0 }
       ]]
     },
-    "임베딩 준비": { "main": [[{ "node": "Upstage 임베딩", "type": "main", "index": 0 }]] },
-    "Upstage 임베딩": { "main": [[{ "node": "Supabase 요청 준비", "type": "main", "index": 0 }]] },
-    "Supabase 요청 준비": { "main": [[{ "node": "Supabase 저장", "type": "main", "index": 0 }]] },
     "데이터 수집": { "main": [[{ "node": "RSS 피드 호출", "type": "main", "index": 0 }]] },
     "RSS 피드 호출": { "main": [[{ "node": "RSS 파싱", "type": "main", "index": 0 }]] },
     "RSS 파싱": { "main": [[{ "node": "리포트 프롬프트", "type": "main", "index": 0 }]] },
