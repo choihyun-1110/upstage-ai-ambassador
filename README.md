@@ -1,7 +1,9 @@
 # Upstage AI Ambassador 2기 — 최현 프로젝트 모음
 
-> Upstage AI Ambassador 2기 활동에서 진행한 프로젝트들을 모아둔 레포입니다.
-> Upstage Solar LLM, Document Parse 등 Upstage 제품을 활용한 실습 프로젝트들입니다.
+> Upstage AI Ambassador 2기 활동에서 진행한 프로젝트들을 모아둔 레포입니다.  
+> Upstage Solar LLM, Document Parse 등 Upstage 제품을 활용한 실전 프로젝트들입니다.
+
+🌐 **랜딩 페이지**: [choihyun-1110.github.io/upstage-ai-ambassador](https://choihyun-1110.github.io/upstage-ai-ambassador)
 
 ---
 
@@ -10,35 +12,43 @@
 ### 1. AI 커리어 어드바이저 — n8n 노코드 자동화
 > `n8n_workflow/` | 미션 1
 
-PDF 한 장으로 나만의 커리어 코치를 만드는 자동화 워크플로우.
+PDF 한 장으로 나만의 커리어 코치를 만드는 자동화 워크플로우.  
 이력서/자기소개서 PDF를 업로드하면 AI가 프로필을 분석하고, 맞춤 대외활동·채용공고·업계 뉴스를 이메일로 발송합니다.
 
 **기술 스택:** n8n · Upstage Document Parse · Upstage Solar Pro · Supabase pgvector · Gmail SMTP
 
-→ [자세히 보기](#-ai-커리어-어드바이저--n8n-노코드-자동화)
-
 ---
 
-### 2. JD Fit — Claude Code 스킬
+### 2. JD Fit — Claude Code Skill
 > `skills/jd-fit/` | 미션 2
 
-채용공고 URL 하나만 던지면 전체 공고를 자동 크롤링해서 적합도 점수(0-100)와 함께 랭킹을 알려주는 Claude Code 스킬.
-기아, 삼성 등 JS 동적 렌더링 채용 사이트도 Chrome MCP로 자동 읽기. Upstage Solar Pro로 분석.
+채용공고 URL 하나만 던지면 전체 공고를 자동 크롤링해서 적합도 점수(0–100)와 함께 랭킹을 알려주는 Claude Code Skill.  
+JS 동적 렌더링 채용 사이트도 Chrome MCP로 자동 크롤링. Upstage Solar Pro로 분석.
 
 **기술 스택:** Claude Code Skills · Upstage Solar Pro · Upstage Document Parse · Chrome MCP
 
-→ [자세히 보기](#-jd-fit--claude-code-스킬)
+📝 [블로그 포스트](https://velog.io/@choihyun-1110/%EC%B1%84%EC%9A%A9%EA%B3%B5%EA%B3%A0-URL-%ED%95%98%EB%82%98%EB%A1%9C-%EC%A0%84%EC%B2%B4-%EB%B6%84%EC%84%9D-Upstage-Solar-Claude-Code-Skill%EB%A1%9C-JD-Fit-%EB%A7%8C%EB%93%A4%EA%B8%B0)
+
+---
+
+### 3. CatchTable Sniper — Claude Code Skill
+> `skills/catchtable-sniper/` | 사이드 프로젝트
+
+캐치테이블 빈자리를 30초 간격으로 감시하다가 취소 슬롯이 뜨는 순간 자동으로 예약하는 Claude Code Skill.  
+멀티 타겟 동시 감시, 예약 오픈런 모드, 인원 유연 매칭, Dry-run 알림 모드 지원.
+
+**기술 스택:** Claude Code Skills · Chrome MCP
+
+📝 [블로그 포스트](https://velog.io/@choihyun-1110/Upstage-AI-Ambassador-Claude-Code-Skill-%EC%BA%90%EC%B9%98%ED%85%8C%EC%9D%B4%EB%B8%94-%EB%B9%88%EC%9E%90%EB%A6%AC-%EB%82%98%EC%98%A4%EB%A9%B4-AI%EA%B0%80-%EC%9E%90%EB%8F%99%EC%9C%BC%EB%A1%9C-%EC%98%88%EC%95%BD%ED%95%B4%EC%A4%80%EB%8B%A4) · 🔗 [k-skill PR 리뷰 중](https://github.com/choihyun-1110/k-skill/pull/new/feat/catchtable-sniper)
 
 ---
 
 ## 🔑 공통 환경 설정
 
 ```bash
-# 레포 클론
 git clone https://github.com/choihyun-1110/upstage-ai-ambassador.git
 cd upstage-ai-ambassador
 
-# API 키 설정
 cp .env.example .env
 # .env 파일에 UPSTAGE_API_KEY 입력
 ```
@@ -114,41 +124,43 @@ n8n 접속 → `Workflows → Import from file` → `n8n_workflow/career_advisor
 
 ```
 n8n_workflow/
-├── career_advisor.json      # 메인 워크플로우
-└── user_profile.json        # 등록 후 자동 생성 (gitignore)
+├── career_advisor.json
+└── user_profile.json
 ```
 
 ---
 
-## 🔍 JD Fit — Claude Code 스킬
+## 🔍 JD Fit — Claude Code Skill
 
 채용 사이트 URL 하나만 입력하면:
 
 1. **전체 공고를 자동으로 수집합니다** — JS 렌더링 사이트도 Chrome MCP로 자동 크롤링
-2. **Upstage Solar Pro로 적합도를 분석합니다** — 0-100점 + 강점/약점/추천 이유
+2. **Upstage Solar Pro로 적합도를 분석합니다** — 0–100점 + 강점/약점/추천 이유
 3. **랭킹 테이블로 정리해줍니다** — 어떤 공고에 먼저 지원할지 한눈에
 
-### 사용 방법
+### 설치
 
-**설치:**
 ```bash
-# SKILL.md를 Claude Code 스킬 디렉토리에 복사
 mkdir -p ~/.claude/skills/jd-fit
 cp skills/jd-fit/SKILL.md ~/.claude/skills/jd-fit/SKILL.md
 ```
 
-**사용:**
-```
-# Claude Code에서
-/jd-fit https://career.kia.com/apply/applyList.kc
+또는 curl로 바로 설치:
 
-# 또는 그냥 URL을 던져도 자동 트리거
-https://kia-autoworld.com/entry/  ← 이거 분석해줘
+```bash
+mkdir -p ~/.claude/skills/jd-fit
+curl -o ~/.claude/skills/jd-fit/SKILL.md \
+  https://raw.githubusercontent.com/choihyun-1110/upstage-ai-ambassador/main/skills/jd-fit/SKILL.md
 ```
 
-**프로필 저장** (선택):
+### 사용
+
 ```
-~/.claude/jd-fit-profile.json  ← 한 번 입력하면 다음부터 재사용
+# Claude Code에서 URL 그냥 던지기
+https://kia-autoworld.com/entry/  분석해줘
+
+# PDF JD 파일
+/Downloads/삼성전자_공고.pdf 분석해줘
 ```
 
 ### 기술 스택
@@ -158,15 +170,7 @@ https://kia-autoworld.com/entry/  ← 이거 분석해줘
 | 스킬 플랫폼 | Claude Code Skills |
 | JD 분석 | Upstage Solar Pro |
 | PDF JD 처리 | Upstage Document Parse |
-| JS 사이트 크롤링 | Chrome MCP (navigate + get_page_text) |
-
-### 파일 구조
-
-```
-skills/
-└── jd-fit/
-    └── SKILL.md    # 스킬 정의 파일
-```
+| JS 사이트 크롤링 | Chrome MCP |
 
 ### 분석 결과 예시
 
@@ -174,14 +178,89 @@ skills/
 🏆 채용공고 적합도 랭킹 (총 6개 분석)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| 순위 | 직무 | 점수 | 추천 |
-|------|------|------|------|
-| 1위  | Data Scientist | 65점 | ⚠️ 조건부 추천 |
-| 2위  | Machine Learning Engineer | 65점 | ⚠️ 조건부 추천 |
-| 3위  | 글로벌 CRM | 50점 | ⚠️ 조건부 |
-| 4위  | IT Project Manager | 45점 | ⚠️ 조건부 |
-| 5위  | Mobile Developer | 40점 | ❌ 비추천 |
-| 6위  | Solution Architect (ERP FI) | 30점 | ❌ 비추천 |
+| 순위 | 직무                        | 점수 | 추천        |
+|------|-----------------------------|------|-------------|
+| 1위  | Data Scientist              | 65점 | ⚠️ 조건부   |
+| 2위  | Machine Learning Engineer   | 65점 | ⚠️ 조건부   |
+| 3위  | 글로벌 CRM                  | 50점 | ⚠️ 조건부   |
+| 4위  | IT Project Manager          | 45점 | ⚠️ 조건부   |
+| 5위  | Mobile Developer            | 40점 | ❌ 비추천   |
+| 6위  | Solution Architect (ERP FI) | 30점 | ❌ 비추천   |
+```
+
+---
+
+## 🍣 CatchTable Sniper — Claude Code Skill
+
+원하는 식당을 지정하면 30초마다 빈자리를 체크하다가, 취소가 생기는 순간 자동으로 예약합니다.
+
+### 주요 기능
+
+| 기능 | 설명 |
+|------|------|
+| **취소 스나이핑** | 30초 간격 폴링, 빈자리 발견 즉시 자동 예약 |
+| **멀티 타겟** | 식당 여러 개 동시 감시, 먼저 뜨는 곳 예약 |
+| **오픈런 모드** | 예약 오픈 시간 정각에 맞춰 즉시 예약 시도 |
+| **인원 유연 매칭** | 2인 없으면 4인 슬롯 발견 시 알림 |
+| **Dry-run 모드** | 발견 알림만, 예약은 사람이 직접 |
+
+### 설치
+
+```bash
+mkdir -p ~/.claude/skills/catchtable-sniper
+curl -o ~/.claude/skills/catchtable-sniper/SKILL.md \
+  https://raw.githubusercontent.com/choihyun-1110/upstage-ai-ambassador/main/skills/catchtable-sniper/SKILL.md
+```
+
+### 사전 준비
+
+Chrome에서 캐치테이블(`app.catchtable.co.kr`) 로그인 후 Chrome MCP 연결.  
+로그인 자동화 없음 — 세션만 사용.
+
+### 사용 예시
+
+```
+"온지음 5월 토요일 저녁 2인 빈자리 나오면 예약해줘"
+"온지음, 밍글스, 라연 중 5월 주말 2인 아무데나 먼저 뜨는 거 잡아줘"
+"라연 5월 예약이 4월 30일 오전 10시 오픈이야, 그때 맞춰서 잡아줘"
+"스시야마 이번달 2인 — 없으면 4인도 괜찮아, dry-run으로"
+```
+
+### 동작 흐름
+
+```
+[14:21:03] 온지음 5/3 확인 중... 없음
+[14:21:33] 밍글스 5/3 확인 중... 없음
+[14:22:03] 스시미루 5/3 확인 중... 없음
+[14:22:33] ✅ 스시미루 19:30 빈자리 발견!
+[14:22:34] 🎉 예약 완료
+```
+
+> 🤝 [k-skill 오픈소스 기여](https://github.com/NomaDamas/k-skill) — catchtable-sniper PR 제출
+
+---
+
+## 📁 전체 파일 구조
+
+```
+upstage-ai-ambassador/
+├── index.html                        # GitHub Pages 랜딩 페이지
+├── skills/
+│   ├── jd-fit/
+│   │   └── SKILL.md
+│   └── catchtable-sniper/
+│       └── SKILL.md
+├── n8n_workflow/
+│   ├── career_advisor.json
+│   └── SETUP_GUIDE.md
+└── blog/
+    ├── mission2-jd-fit-skill.md      # JD Fit 스킬 소개 포스트
+    ├── mission2-jd-fit-review.md     # SK하이닉스 후기 포스트
+    ├── catchtable-sniper.md          # CatchTable Sniper 포스트
+    └── thumbnails/
+        ├── thumb1.html               # JD Fit 썸네일
+        ├── thumb2.html               # SK하이닉스 후기 썸네일
+        └── thumb3.html               # CatchTable Sniper 썸네일
 ```
 
 ---
